@@ -54,6 +54,8 @@ int main(int argc , char** argv)
     {
         printf("Enter message to be sent to the server : ");
         scanf("%s" , message);
+
+        float fMessage = 1.0000;
          
         // Send the message
         errorCode = send(appSocket, message, strlen(message), 0);
