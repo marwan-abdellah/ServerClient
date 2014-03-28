@@ -15,6 +15,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+
+
 //the thread function
 void *connectionHandler(void *);
 
@@ -143,12 +145,19 @@ void *connectionHandler(void *socketDescriptor)
     message = "Call me and I will get back to you";
     write(socket , message , strlen(message));
 
+    float fMsg[10];
+
+
+
     // Receive a message from clientAddress
     // Stay in this loop as long as you read a valid string
-    while((readSize = recv(socket , clinetMsg , 2000 , 0)) > 0)
+    while((readSize = recv(socket , fMsg , sizeof(float) * 10, 0)) > 0)
     {
+        for (int i = 0; i < 10 ; i++)
+        {
         std::cout << "The recieved message from the client is "
-                  << clinetMsg << std::endl;
+                  << fMsg[i] << std::endl;
+        }
 
         // Send the message back to client
         write(socket, clinetMsg, strlen(clinetMsg));

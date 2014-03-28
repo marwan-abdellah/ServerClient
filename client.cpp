@@ -55,10 +55,13 @@ int main(int argc , char** argv)
         printf("Enter message to be sent to the server : ");
         scanf("%s" , message);
 
-        float fMessage = 1.0000;
+        float fMessage[10];
+        for (int i = 0; i < 10; i++) fMessage[i] = 2 * i;
          
         // Send the message
-        errorCode = send(appSocket, message, strlen(message), 0);
+        // errorCode = send(appSocket, message, strlen(message), 0);
+        errorCode = send(appSocket, fMessage, sizeof(float) * 10, 0);
+
         if(errorCode < 0)
         {
             std::cout << "Sending the message failed" << std::endl;
