@@ -135,33 +135,20 @@ void *connectionHandler(void *socketDescriptor)
     // The size of the read message
     int readSize;
 
-    //
-    char* message;
-
-    //
-    char clinetMsg[2000] = "Hey";
-
-    // Send this message to the client during the connection
-    message = "I am the connection handler ";
-    // write(socket , message , strlen(message));
-
-    message = "Call me and I will get back to you";
-    // write(socket , message , strlen(message));
 
     float fMsg[ARRAY_SIZE];
 
-    int someNum = 1;
-
     // Receive a message from clientAddress
     // Stay in this loop as long as you read a valid string
+
     while((readSize = recv(socket , fMsg , sizeof(float) * ARRAY_SIZE, 0)) > 0)
     {
+        std::cout << "Read size" << readSize << std::endl;
         for (int i = 0; i < ARRAY_SIZE ; i++)
             std::cout << fMsg[i] << " ";
 
-
-        // Send the message back to client
-        write(socket, clinetMsg, strlen(clinetMsg));
+        int commMessgae = 1;
+        write(socket, &commMessgae, sizeof(int));
     }
 
     if(readSize == 0)

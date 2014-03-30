@@ -63,9 +63,13 @@ int main(int argc , char** argv)
     else
         std::cout << "Client is connected to the server" << std::endl;
      
+    int replyMessage = 0;
     // Keep communicating with server until you drop the client
     while(1)
     {
+
+        sleep(replyMessage);
+
         float fMessage[ARRAY_SIZE];
         for (int i = 0; i < ARRAY_SIZE; i++)
             fMessage[i] = clinetValue;
@@ -80,7 +84,8 @@ int main(int argc , char** argv)
         }
          
         // Receive a reply from the server
-        errorCode = recv(appSocket , serverReply , 2000 , 0);
+        errorCode = recv(appSocket , &replyMessage , sizeof(int), 0);
+
         if(errorCode < 0)
         {
             std::cout << "Receving the message from the server failed, Exiting" << std::endl;
@@ -88,7 +93,7 @@ int main(int argc , char** argv)
         }
         else
         {
-            std::cout << "Server reply : " << serverReply << std::endl;
+            std::cout << "Server reply : " << replyMessage << std::endl;
         }
     }
 
