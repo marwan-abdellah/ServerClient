@@ -73,6 +73,11 @@ int main(int argc , char** argv)
         float fMessage[ARRAY_SIZE];
         for (int i = 0; i < ARRAY_SIZE; i++)
             fMessage[i] = clinetValue;
+
+
+        /// Get the image
+        ///
+        /// Send the image wait for the receiver to send back move on and the angle
          
         // Send the message
         errorCode = send(appSocket, fMessage, sizeof(float) * ARRAY_SIZE, 0);

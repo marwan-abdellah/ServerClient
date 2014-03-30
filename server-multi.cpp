@@ -125,6 +125,14 @@ int main(int argc , char *argv[])
 }
 
 
+
+void display()
+{
+    /// this is the display thread,
+    /// switch between this thread and the collector threads to make it
+}
+
+
 /// This will handle connection for each client
 /// This is a threded function
 void *connectionHandler(void *socketDescriptor)
@@ -146,6 +154,16 @@ void *connectionHandler(void *socketDescriptor)
         std::cout << "Read size" << readSize << std::endl;
         for (int i = 0; i < ARRAY_SIZE ; i++)
             std::cout << fMsg[i] << " ";
+
+
+        // Fill the array
+        // wait until the array is filled
+        // send back to the clinet to resume
+        // The server is waiting for me so write it
+
+
+        // display thread
+        // display();
 
         int commMessgae = 1;
         write(socket, &commMessgae, sizeof(int));
