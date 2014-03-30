@@ -14,10 +14,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "Shared.h"
+
 #define ARRAY_SIZE 8
 
 int main(int argc , char** argv)
 {
+    int sCount = 1;
     if (argc < 2)
     {
         std::cout << "Enter a clinet number " << std::endl;
@@ -62,6 +65,9 @@ int main(int argc , char** argv)
     }
     else
         std::cout << "Client is connected to the server" << std::endl;
+
+
+    Packet packet;
      
     int replyMessage = 0;
     // Keep communicating with server until you drop the client
@@ -70,9 +76,12 @@ int main(int argc , char** argv)
 
         sleep(replyMessage);
 
-        float fMessage[ARRAY_SIZE];
         for (int i = 0; i < ARRAY_SIZE; i++)
-            fMessage[i] = clinetValue;
+        {
+            packet.imageData[i] = i + clinetValue;
+        }
+
+        packet.clinetNumber = clinetValue;
 
 
         /// Get the image
@@ -80,7 +89,7 @@ int main(int argc , char** argv)
         /// Send the image wait for the receiver to send back move on and the angle
          
         // Send the message
-        errorCode = send(appSocket, fMessage, sizeof(float) * ARRAY_SIZE, 0);
+        errorCode = send(appSocket, &packet, sizeof(Packet), 0);
 
         if(errorCode < 0)
         {
@@ -99,6 +108,8 @@ int main(int argc , char** argv)
         else
         {
             std::cout << "Server reply : " << replyMessage << std::endl;
+
+            sCount++;
         }
     }
 

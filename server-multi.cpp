@@ -2,9 +2,9 @@
 #include<string.h>
 #include<stdlib.h>
 #include<sys/socket.h>
-#include<arpa/inet.h>
-#include<unistd.h>
-#include<pthread.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <iostream>
 #include <stdlib.h>
@@ -14,17 +14,103 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-
+#include <vector>
 #include "Shared.h"
 
+// Array size
 #define ARRAY_SIZE 8
 
+// A vector containing all the threads
+// Keep all the threads in this table
+std::vector <pthread_t> threadTable;
 
-//the thread function
+// Use these cline acknowledgments to synchronize between
+// the collecting threads and the draw() thread.
+int clinetAck_0 = 0;
+int clinetAck_1 = 0;
+int clinetAck_2 = 0;
+int clinetAck_3 = 0;
+
+// Mutex for the final image
+pthread_mutex_t imageMutex;
+
+// Condition variables for the Producer and the Consumer
+pthread_cond_t drawCond;
+pthread_cond_t clinetCond_1;
+pthread_cond_t clinetCond_2;
+pthread_cond_t clinetCond_3;
+pthread_cond_t clinetCond_4;
+
+float image[32];
+
+// the thread function
 void *connectionHandler(void *);
+
+
+// Create the draw thread
+pthread_t drawThread;
+
+
+void *display(void*);
+
+void *display(void* ptr)
+{
+    std::cout << "Display " << std::endl;
+
+    // Lock the image array until the thread writes its corresponding
+    // part into it
+    pthread_mutex_lock(&imageMutex);
+
+    // If the array is ready, then display its contents
+    if (clinetAck_0 == 1 && clinetAck_1 == 1
+            && clinetAck_2 == 1 && clinetAck_3 == 1)
+    {
+        for (int i = 0; i < 32; i++)
+            std::cout << image[i];
+        std::cout << std::endl;
+
+        // Reset all the clinet acknowledgments for the next
+        // iteration in the rendering loop
+        clinetAck_0 = 0;
+        clinetAck_1 = 0;
+        clinetAck_2 = 0;
+        clinetAck_3 = 0;
+
+        for (int i = 0; i < 32; i++)
+            image[i] = 0;
+    }
+
+    // resume the collecting threads
+
+    // signal all the threads (for loop)
+    // unlock the resource
+
+    pthread_cond_signal(&clinetCond_1);
+    pthread_cond_signal(&clinetCond_2);
+    pthread_cond_signal(&clinetCond_3);
+    pthread_cond_signal(&clinetCond_4);
+
+    // Unlock the image array
+    pthread_mutex_unlock(&imageMutex);
+
+
+}
 
 int main(int argc , char *argv[])
 {
+    // Initialize the image mutex
+    pthread_mutex_init(&imageMutex, NULL);
+
+    // Create the drawing thread
+    pthread_create(&drawThread, NULL, display, NULL);
+
+    // Initialize, the condition variables
+    pthread_cond_init(&clinetCond_1, NULL);
+    pthread_cond_init(&clinetCond_2, NULL);
+    pthread_cond_init(&clinetCond_3, NULL);
+    pthread_cond_init(&clinetCond_4, NULL);
+    pthread_cond_init(&drawCond, NULL);
+
     // Sokcet descriptor Id
     int socketDescriptor;
 
@@ -103,6 +189,10 @@ int main(int argc , char *argv[])
         // Create the thread
         errorCode = pthread_create(&connectionThread, NULL, connectionHandler,
                                    (void*) freshSocket);
+
+        // Add the thread to the thread table
+        threadTable.push_back(connectionThread);
+
         if(errorCode < 0)
         {
             std::cout << "Could not create a thread specific to the connection" << std::endl;
@@ -121,17 +211,18 @@ int main(int argc , char *argv[])
         return 1;
     }
 
+    // Destroy the image mutex
+    pthread_mutex_destroy(&imageMutex);
+
+    // Free up Consumer condition variable
+    pthread_cond_destroy(&clinetCond_1);
+    pthread_cond_destroy(&clinetCond_2);
+    pthread_cond_destroy(&clinetCond_3);
+    pthread_cond_destroy(&clinetCond_4);
+    pthread_cond_destroy(&drawCond);
+
     return 0;
 }
-
-
-
-void display()
-{
-    /// this is the display thread,
-    /// switch between this thread and the collector threads to make it
-}
-
 
 /// This will handle connection for each client
 /// This is a threded function
@@ -144,17 +235,64 @@ void *connectionHandler(void *socketDescriptor)
     int readSize;
 
 
-    float fMsg[ARRAY_SIZE];
+    Packet packet;
 
     // Receive a message from clientAddress
     // Stay in this loop as long as you read a valid string
 
-    while((readSize = recv(socket , fMsg , sizeof(float) * ARRAY_SIZE, 0)) > 0)
+    while((readSize = recv(socket , &packet , sizeof(Packet), 0)) > 0)
     {
-        std::cout << "Read size" << readSize << std::endl;
-        for (int i = 0; i < ARRAY_SIZE ; i++)
-            std::cout << fMsg[i] << " ";
 
+
+        // lock the resource
+        // make the display function wait
+        // write to the array
+        // make the flag that proves it have been written to 1
+
+
+
+        // Lock the image array until the thread writes its corresponding
+        // part into it
+        pthread_mutex_lock(&imageMutex);
+
+        // Wait until you handle the image array
+        // pthread_cond_wait(&drawCond, &imageMutex);
+
+        // std::cout << "Read size" << readSize
+           //       <<  " from " <<  packet.clinetNumber << std::endl;
+
+
+
+        int client = int (packet.clinetNumber);
+        switch (client)
+        {
+        case 1:
+            clinetAck_0 = 1;
+
+            for (int i = 0; i < ARRAY_SIZE ; i++)
+                image[i] = packet.imageData[i];
+            break;
+        case 2:
+            clinetAck_1 = 1;
+
+            for (int i = 0; i < ARRAY_SIZE ; i++)
+                image[i + ARRAY_SIZE] = packet.imageData[i];
+            break;
+        case 3:
+            clinetAck_2 = 1;
+
+            for (int i = 0; i < ARRAY_SIZE ; i++)
+                image[i + (2 * ARRAY_SIZE)] = packet.imageData[i];
+            break;
+        case 4:
+            clinetAck_3 = 1;
+
+            for (int i = 0; i < ARRAY_SIZE ; i++)
+                image[i + (3 * ARRAY_SIZE)] = packet.imageData[i];
+            break;
+        default:
+            break;
+        }
 
         // Fill the array
         // wait until the array is filled
@@ -162,8 +300,18 @@ void *connectionHandler(void *socketDescriptor)
         // The server is waiting for me so write it
 
 
+        // Signal the draw() thread
+        pthread_cond_signal(&drawCond);
+
+        // Unlock the image array
+        pthread_mutex_unlock(&imageMutex);
+
+
+
         // display thread
-        // display();
+        // try the display thread if it can works
+        void* ptr;
+        display(ptr);
 
         int commMessgae = 1;
         write(socket, &commMessgae, sizeof(int));

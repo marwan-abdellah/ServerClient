@@ -1,10 +1,11 @@
 #ifndef SHARED_H
 #define SHARED_H
 
-enum ACK_MSG
+typedef struct
 {
-
-};
+    float clinetNumber;
+    float imageData[8];
+} Packet;
 
 
 
