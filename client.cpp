@@ -11,9 +11,24 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#define ARRAY_SIZE 8
 
 int main(int argc , char** argv)
 {
+    if (argc < 2)
+    {
+        std::cout << "Enter a clinet number " << std::endl;
+        return 0;
+    }
+
+    // Identify the client
+    float clinetValue = atof(argv[1]);
+
+    std::cout << "Clinet : " << clinetValue << std::endl;
+
     // The application socket that connects the client with the server
     int appSocket;
 
@@ -21,7 +36,6 @@ int main(int argc , char** argv)
     struct sockaddr_in serverAddress;
 
     // Messages
-    char message[1000];
     char serverReply[2000];
      
     // Create the clinet socket
@@ -52,15 +66,12 @@ int main(int argc , char** argv)
     // Keep communicating with server until you drop the client
     while(1)
     {
-        printf("Enter message to be sent to the server : ");
-        scanf("%s" , message);
-
-        float fMessage[10];
-        for (int i = 0; i < 10; i++) fMessage[i] = 2 * i;
+        float fMessage[ARRAY_SIZE];
+        for (int i = 0; i < ARRAY_SIZE; i++)
+            fMessage[i] = clinetValue;
          
         // Send the message
-        // errorCode = send(appSocket, message, strlen(message), 0);
-        errorCode = send(appSocket, fMessage, sizeof(float) * 10, 0);
+        errorCode = send(appSocket, fMessage, sizeof(float) * ARRAY_SIZE, 0);
 
         if(errorCode < 0)
         {

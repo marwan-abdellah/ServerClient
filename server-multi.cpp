@@ -15,6 +15,9 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+#include "Shared.h"
+
+#define ARRAY_SIZE 8
 
 
 //the thread function
@@ -136,28 +139,26 @@ void *connectionHandler(void *socketDescriptor)
     char* message;
 
     //
-    char clinetMsg[2000];
+    char clinetMsg[2000] = "Hey";
 
     // Send this message to the client during the connection
     message = "I am the connection handler ";
-    write(socket , message , strlen(message));
+    // write(socket , message , strlen(message));
 
     message = "Call me and I will get back to you";
-    write(socket , message , strlen(message));
+    // write(socket , message , strlen(message));
 
-    float fMsg[10];
+    float fMsg[ARRAY_SIZE];
 
-
+    int someNum = 1;
 
     // Receive a message from clientAddress
     // Stay in this loop as long as you read a valid string
-    while((readSize = recv(socket , fMsg , sizeof(float) * 10, 0)) > 0)
+    while((readSize = recv(socket , fMsg , sizeof(float) * ARRAY_SIZE, 0)) > 0)
     {
-        for (int i = 0; i < 10 ; i++)
-        {
-        std::cout << "The recieved message from the client is "
-                  << fMsg[i] << std::endl;
-        }
+        for (int i = 0; i < ARRAY_SIZE ; i++)
+            std::cout << fMsg[i] << " ";
+
 
         // Send the message back to client
         write(socket, clinetMsg, strlen(clinetMsg));
